@@ -57,8 +57,13 @@ import retrofit2.Response;
 
 public class CombinedChartActivity extends DemoBase {
 
+    enum Type {
+        DateFrom,
+        DateTo
+    }
+
     private CombinedChart chart;
-    private final int count = 12;
+    private Button fromBtn, toBtn;
     RecyclerView recyclerView;
     RecyclerView.Adapter adapter;
     XAxis xAxis;
@@ -68,6 +73,7 @@ public class CombinedChartActivity extends DemoBase {
     AlertDialog alertDialog;
     private SwitchDateTimeDialogFragment dateTimeFragment;
     ImageView flowImg;
+    String last_clicked_code = "", last_dateFrom = "01-01-2020", last_dateTo = "01-01-2020";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +85,7 @@ public class CombinedChartActivity extends DemoBase {
         dateTimeSearch = findViewById(R.id.dateTimeSearch);
         flowImg = findViewById(R.id.flowImg);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         recyclerView = findViewById(R.id.rec);
         recyclerView.setLayoutManager(layoutManager);
 
@@ -124,7 +130,7 @@ public class CombinedChartActivity extends DemoBase {
 
 
         data.setValueTypeface(tfLight);
-        listSpecialities(this,"","");
+        listSpecialities(this);
 
 
         dateTimeSearch.setOnClickListener(new View.OnClickListener() {
@@ -133,8 +139,10 @@ public class CombinedChartActivity extends DemoBase {
                 /**Display first dialog (from, to, search)*/
                 LayoutInflater inflater = getLayoutInflater();
                 View fromToSearch = inflater.inflate(R.layout.from_to_dialog, null);
-                final Button fromBtn = fromToSearch.findViewById(R.id.fromBtn);
-                final Button toBtn = fromToSearch.findViewById(R.id.toBtn);
+                fromBtn = fromToSearch.findViewById(R.id.fromBtn);
+                toBtn = fromToSearch.findViewById(R.id.toBtn);
+                fromBtn.setText(last_dateFrom);
+                toBtn.setText(last_dateTo);
                 Button searchBtn = fromToSearch.findViewById(R.id.searchBtn);
                 final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(CombinedChartActivity.this);
 // ...Irrelevant code for customizing the buttons and title
@@ -156,14 +164,16 @@ public class CombinedChartActivity extends DemoBase {
                 fromBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        DatePicker(fromBtn);
+                        DatePicker(fromBtn, last_dateFrom, Type.DateFrom);
+
                     }
                 });
 
                 toBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        DatePicker(toBtn);
+                        DatePicker(toBtn, last_dateTo, Type.DateTo);
+
                     }
                 });
 
@@ -171,7 +181,10 @@ public class CombinedChartActivity extends DemoBase {
                     @Override
                     public void onClick(View view) {
                         //action
-                        listSpecialities(CombinedChartActivity.this, fromBtn.getText().toString(), toBtn.getText().toString());
+                        if (!last_clicked_code.equals(""))
+                            listProviderTiming(last_clicked_code, last_dateFrom, last_dateTo);
+                        else
+                            Toast.makeText(CombinedChartActivity.this, "Please Select Specialist Code!", Toast.LENGTH_SHORT).show();
                         alertDialog.dismiss();
                     }
                 });
@@ -179,21 +192,22 @@ public class CombinedChartActivity extends DemoBase {
         });
     }
 
-    private void NoData(){
+    private void NoData() {
         progressBar.setVisibility(View.INVISIBLE);
         chart.setVisibility(View.INVISIBLE);
         flowImg.setVisibility(View.VISIBLE);
     }
 
-    private void ShowData(){
-        progressBar.setVisibility(View.VISIBLE);
+    private void ShowData() {
+        progressBar.setVisibility(View.GONE);
         chart.setVisibility(View.VISIBLE);
-        flowImg.setVisibility(View.INVISIBLE);
+        flowImg.setVisibility(View.GONE);
     }
-    private void DatePicker(final Button button){
+
+    private void DatePicker(final Button button, String date, final Type type) {
         // Construct SwitchDateTimePicker
         dateTimeFragment = (SwitchDateTimeDialogFragment) getSupportFragmentManager().findFragmentByTag("n");
-        if(dateTimeFragment == null) {
+        if (dateTimeFragment == null) {
             dateTimeFragment = SwitchDateTimeDialogFragment.newInstance(
                     getString(R.string.label_datetime_dialog),
                     getString(android.R.string.ok),
@@ -213,6 +227,7 @@ public class CombinedChartActivity extends DemoBase {
         dateTimeFragment.setMinimumDateTime(new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime());
         dateTimeFragment.setMaximumDateTime(new GregorianCalendar(2200, Calendar.DECEMBER, 31).getTime());
 
+
         // Define new day and month format
         try {
             dateTimeFragment.setSimpleDateMonthAndDayFormat(new SimpleDateFormat("MMMM dd", Locale.getDefault()));
@@ -226,6 +241,10 @@ public class CombinedChartActivity extends DemoBase {
             @Override
             public void onPositiveButtonClick(Date date) {
                 button.setText(myDateFormat.format(date));
+                if (type == Type.DateTo)
+                    last_dateTo = button.getText().toString();
+                else
+                    last_dateFrom = button.getText().toString();
             }
 
             @Override
@@ -242,7 +261,7 @@ public class CombinedChartActivity extends DemoBase {
         });
 
         dateTimeFragment.startAtCalendarView();
-        dateTimeFragment.setDefaultDateTime(new GregorianCalendar(2020, Calendar.MARCH, 4, 15, 20).getTime());
+        dateTimeFragment.setDefaultDateTime(new GregorianCalendar(Integer.parseInt(date.substring(6)), Integer.parseInt(date.substring(3, 5)) - 1, Integer.parseInt(date.substring(0, 2)), 15, 20).getTime());
         dateTimeFragment.show(getSupportFragmentManager(), "n");
     }
 
@@ -322,10 +341,12 @@ public class CombinedChartActivity extends DemoBase {
             public void onResponse(Call<Model> call, Response<Model> response) {
                 if (response.isSuccessful()) {
                     System.out.println("*********************** on response ********************");
+                    System.out.println("*********************** dateFrom ******************** " + dateFrom);
+                    System.out.println("*********************** dateTo ******************** " + dateTo);
                     Model appointmentItems = response.body();
 
                     if (appointmentItems != null && appointmentItems.getProviderStats() != null) {
-                        progressBar.setVisibility(View.GONE);
+                        ShowData();
                         ArrayList<BarEntry> followupSlotsAverage = new ArrayList<>();
                         ArrayList<BarEntry> newSlotsAverage = new ArrayList<>();
                         ArrayList<Entry> totalfollowupSlotsAverage = new ArrayList<>();
@@ -366,6 +387,8 @@ public class CombinedChartActivity extends DemoBase {
                         chart.setData(data);
                         chart.invalidate();
 
+                    } else {
+                        Toast.makeText(CombinedChartActivity.this, "No Data to Display..try to change the date of search!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     System.out.println("no access to resources");
@@ -375,13 +398,14 @@ public class CombinedChartActivity extends DemoBase {
 
             @Override
             public void onFailure(Call<Model> call, Throwable t) {
+                Toast.makeText(CombinedChartActivity.this, "Please Select Date range to search within!", Toast.LENGTH_SHORT).show();
                 call.cancel();
 
             }
         });
     }
 
-    public void listSpecialities(final Context context, @Nullable final String dateFrom,@Nullable final String dateTo) {
+    public void listSpecialities(final Context context) {
         MyServicesInterface myServicesInterface = (MyServicesInterface) RetrofitInstance.getService();
         Call<SpecialitiesResponse> call = myServicesInterface.getSpecialities();
         call.enqueue(new Callback<SpecialitiesResponse>() {
@@ -389,24 +413,33 @@ public class CombinedChartActivity extends DemoBase {
             public void onResponse(Call<SpecialitiesResponse> call, Response<SpecialitiesResponse> response) {
                 if (response.isSuccessful()) {
                     System.out.println("*********************** on response ********************");
-                    SpecialitiesResponse appointmentItems = response.body();
+                    final SpecialitiesResponse appointmentItems = response.body();
                     if (appointmentItems != null) {
                         Gson gson = new Gson();
                         Log.e("YYYYYYYY", gson.toJson(appointmentItems));
-                        if (!dateFrom.equals("")){
-                            listProviderTiming(appointmentItems.getItems().get(0).getCode(), dateFrom, dateTo);
-                        }
 
-                        recyclerView.setAdapter(new AdapterSpecialities(context, appointmentItems.getItems(), new AdapterSpecialities.OnItemClickListener() {
+                        adapter = new AdapterSpecialities(context, appointmentItems.getItems(), new AdapterSpecialities.OnItemClickListener() {
                             @Override
-                            public void onItemClick(Item item) {
-                                progressBar.setVisibility(View.VISIBLE);
+                            public void onItemClick(Item item, int position) {
+                                last_clicked_code = item.getCode();
+                                for (int j = 0; j < appointmentItems.getItems().size(); j++) {
+                                    if (j == position) {
+                                        appointmentItems.getItems().get(j).setBackgroundColor("#567845");
+                                        appointmentItems.getItems().get(j).setTextColor("#ffffff");
+                                    } else {
+                                        appointmentItems.getItems().get(j).setBackgroundColor("#ffffff");
+                                        appointmentItems.getItems().get(j).setTextColor("#567845");
+                                    }
+                                }
+                                adapter.notifyDataSetChanged();
 
                                 Toast.makeText(CombinedChartActivity.this, item.getCode(), Toast.LENGTH_SHORT).show();
-                                listProviderTiming(item.getCode(), dateFrom, dateTo);
-                                ShowData();
+
+                                listProviderTiming(item.getCode(), last_dateFrom, last_dateTo);
+
                             }
-                        }));
+                        });
+                        recyclerView.setAdapter(adapter);
 
 
                     }
@@ -418,6 +451,7 @@ public class CombinedChartActivity extends DemoBase {
 
             @Override
             public void onFailure(Call<SpecialitiesResponse> call, Throwable t) {
+                System.out.println("onFailure");
                 call.cancel();
 
             }

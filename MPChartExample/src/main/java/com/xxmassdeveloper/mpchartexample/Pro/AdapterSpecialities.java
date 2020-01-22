@@ -22,7 +22,7 @@ public class AdapterSpecialities extends RecyclerView.Adapter<AdapterSpecialitie
     private final OnItemClickListener listener;
 
     public interface OnItemClickListener {
-        void onItemClick(Item item);
+        void onItemClick(Item item, int position);
     }
 
     public AdapterSpecialities(Context contex, List<Item> item, OnItemClickListener listener) {
@@ -45,22 +45,8 @@ public class AdapterSpecialities extends RecyclerView.Adapter<AdapterSpecialitie
         vHolder.itemView.setBackgroundColor(Color.parseColor(items.get(i).getBackgroundColor()));
         vHolder.specialities_name.setTextColor(Color.parseColor(items.get(i).getTextColor()));
 
-        vHolder.bind(vHolder, i, items.get(i), listener);
-        vHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                for (int j = 0; j < items.size(); j++) {
-                    if (j == i) {
-                        items.get(j).setBackgroundColor("#567845");
-                        items.get(j).setTextColor("#ffffff");
-                    } else {
-                        items.get(j).setBackgroundColor("#ffffff");
-                        items.get(j).setTextColor("#567845");;
-                    }
-                }
-                notifyDataSetChanged();
-            }
-        });
+        vHolder.bind(i,items.get(i), listener);
+
     }
 
     @Override
@@ -76,12 +62,12 @@ public class AdapterSpecialities extends RecyclerView.Adapter<AdapterSpecialitie
             specialities_name = itemView.findViewById(R.id.specialities_name);
         }
 
-        public void bind(final VHolder vHolder, final int i, final Item item, final OnItemClickListener listener) {
+        public void bind(final int position, final Item item, final OnItemClickListener listener) {
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onItemClick(item);
+                    listener.onItemClick(item, position);
 //                    vHolder.itemView.setBackgroundColor(Color.rgb(23, 197, 255));
 
 
