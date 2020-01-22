@@ -17,6 +17,9 @@ import android.widget.Toast;
 import com.github.mikephil.charting.charts.Chart;
 import com.xxmassdeveloper.mpchartexample.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Base class of all Activities of the Demo Application.
  *
@@ -24,9 +27,9 @@ import com.xxmassdeveloper.mpchartexample.R;
  */
 public abstract class DemoBase extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
-    protected final String[] months = new String[] {
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"
-    };
+    protected List<String> doctorNames = new ArrayList<>();
+
+
 
     protected final String[] parties = new String[] {
             "Party A", "Party B", "Party C", "Party D", "Party E", "Party F", "Party G", "Party H",

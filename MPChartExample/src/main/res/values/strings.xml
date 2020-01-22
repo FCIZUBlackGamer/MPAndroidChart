@@ -8,6 +8,10 @@
     <string name="viewWebsite">Developer Website</string>
     <string name="actionSave">Save to Gallery</string>
 
+    <string name="open_datetime_dialog">Open DateTime Dialog</string>
+    <string name="open_datetime_dialog_with_neutral_button">Open DateTime Dialog with Neutral Button</string>
+    <string name="clean">Clean</string>
+
     <string name="animateX">Animate X</string>
     <string name="animateY">Animate Y</string>
     <string name="animateXY">Animate XY</string>
