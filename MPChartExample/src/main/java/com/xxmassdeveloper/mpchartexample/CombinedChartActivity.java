@@ -14,8 +14,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -69,7 +67,7 @@ public class CombinedChartActivity extends DemoBase {
     XAxis xAxis;
     CombinedData data;
     ProgressBar progressBar;
-    SearchView dateTimeSearch;
+    Button dateTimeBtn;
     AlertDialog alertDialog;
     private SwitchDateTimeDialogFragment dateTimeFragment;
     ImageView flowImg;
@@ -82,7 +80,7 @@ public class CombinedChartActivity extends DemoBase {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_combined);
 
-        dateTimeSearch = findViewById(R.id.dateTimeSearch);
+        dateTimeBtn = findViewById(R.id.dateTimeBtn);
         flowImg = findViewById(R.id.flowImg);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
@@ -133,7 +131,7 @@ public class CombinedChartActivity extends DemoBase {
         listSpecialities(this);
 
 
-        dateTimeSearch.setOnClickListener(new View.OnClickListener() {
+        dateTimeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 /**Display first dialog (from, to, search)*/
